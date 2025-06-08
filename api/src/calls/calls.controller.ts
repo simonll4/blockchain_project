@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { CallsService } from './calls.service';
 import { MESSAGES } from '../common/messages';
+import { GetCallResponseDto } from './dto/get-call-response.dto';
 
 @Controller()
 export class CallsController {
@@ -17,12 +18,12 @@ export class CallsController {
     try {
       const call = await this.callsService.getCall(callId);
 
-      return {
+      return new GetCallResponseDto({
         creator: call.creator,
         cfp: call.cfpAddress,
-      };
+      });
     } catch (error) {
-      switch (error.message) {
+      switch (error) {
         case 'INVALID_CALLID':
           throw new HttpException(
             { message: MESSAGES.INVALID_CALLID },
@@ -47,6 +48,7 @@ export class CallsController {
     try {
       return await this.callsService.getAllCalls();
     } catch (error) {
+      console.error('Error in getAllCalls:', error);
       throw new HttpException(
         { message: MESSAGES.INTERNAL_ERROR },
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -59,7 +61,7 @@ export class CallsController {
     try {
       return await this.callsService.getClosingTime(callId);
     } catch (error) {
-      switch (error.message) {
+      switch (error) {
         case 'INVALID_CALLID':
           throw new HttpException(
             { message: MESSAGES.INVALID_CALLID },

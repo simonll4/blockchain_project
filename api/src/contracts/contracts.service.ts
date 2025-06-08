@@ -1,13 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { ethers, Contract, Wallet } from 'ethers';
+import { ethers } from 'ethers';
 import { ConfigService } from '../config/config.service';
 import { ContractLoader } from './utils/contract-loader';
+import { FactoryContract } from './interfaces/cfp-factory.interface';
+import { CFPContract } from './interfaces/cfp.interface';
 
 @Injectable()
 export class ContractsService {
   private provider: ethers.JsonRpcProvider;
   private signer: ethers.Signer;
-  private factoryContract: Contract;
+  //private factoryContract: Contract;
+  private factoryContract: FactoryContract;
 
   constructor(
     private readonly configService: ConfigService,
@@ -16,8 +19,10 @@ export class ContractsService {
     this.provider = new ethers.JsonRpcProvider(
       this.configService.getGanacheUrl(),
     );
-    this.signer = this.createSigner(); // derivado del mnemonic
-    this.factoryContract = this.loader.loadFactoryContract(this.signer); // contrato con firma
+    this.signer = this.createSigner();
+    this.factoryContract = this.loader.loadFactoryContract(
+      this.signer,
+    ) as unknown as FactoryContract;
   }
 
   private createSigner(): ethers.Signer {
@@ -38,12 +43,12 @@ export class ContractsService {
   }
 
   /** Devuelve la instancia firmadora del contrato CFPFactory */
-  getFactory(): Contract {
+  getFactory(): FactoryContract {
     return this.factoryContract;
   }
 
   /** Devuelve una instancia firmadora de un contrato CFP por address */
-  getCfp(address: string): Contract {
+  getCfp(address: string): CFPContract {
     return this.loader.loadCfpContract(address, this.signer);
   }
 }

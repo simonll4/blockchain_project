@@ -1,80 +1,59 @@
-import { Controller, Post, Body, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Headers,
+  HttpException,
+  HttpStatus,
+  Get,
+  Param,
+} from '@nestjs/common';
 import { ProposalsService } from './proposals.service';
+import { GetProposalResponseDto } from './dto/get-proposal.response.dto';
+import { RegisterProposalRequestDto } from './dto/register-proposal-request.dto';
 import { MESSAGES } from '../common/messages';
 
-@Controller('')
+@Controller()
 export class ProposalsController {
   constructor(private readonly proposalService: ProposalsService) {}
 
-  @Post('register-proposal')
-  async registerProposal(@Body() body: { callId: string; proposal: string }) {
-    const { callId, proposal } = body;
-
-    // Validaciones simples (puedes hacer una clase DTO si querés)
-    if (!/^0x[a-fA-F0-9]{64}$/.test(callId)) {
-      throw new HttpException(MESSAGES.INVALID_CALLID, HttpStatus.BAD_REQUEST);
+  @Get('proposal-data/:callId/:proposal')
+  async getProposalData(
+    @Param('callId') callId: string,
+    @Param('proposal') proposal: string,
+  ) {
+    try {
+      const data = await this.proposalService.getProposalData(callId, proposal);
+      return new GetProposalResponseDto({
+        sender: data.sender,
+        blockNumber: Number(data.blockNumber),
+        timestamp: new Date(Number(data.timestamp) * 1000).toISOString(),
+      });
+    } catch (error) {
+      console.error('[ERROR] getProposalData', error);
+      throw error;
     }
+  }
 
-    if (!/^0x[a-fA-F0-9]{64}$/.test(proposal)) {
+  @Post('register-proposal')
+  async registerProposal(
+    @Body() body: RegisterProposalRequestDto,
+    @Headers('content-type') contentType?: string,
+  ) {
+    //TODO: con pipes creo que se puede hacer esto Validar Content-Type
+    if (contentType !== 'application/json') {
       throw new HttpException(
-        MESSAGES.INVALID_PROPOSAL,
+        MESSAGES.INVALID_MIMETYPE,
         HttpStatus.BAD_REQUEST,
       );
     }
 
-    const txHash = await this.proposalService.registerProposal(
-      callId,
-      proposal,
-    );
+    const { callId, proposal } = body;
+    await this.proposalService.registerProposal(callId, proposal);
 
     return {
+      statusCode: 201,
       message: MESSAGES.OK,
-      txHash,
     };
   }
 }
-
-// import {
-//   Controller,
-//   Post,
-//   Body,
-//   HttpException,
-//   HttpStatus,
-// } from '@nestjs/common';
-// import { ProposalService } from './proposal.service';
-
-// @Controller()
-// export class ProposalController {
-//   constructor(private readonly proposalService: ProposalService) {}
-
-//   @Post('register-proposal')
-//   async registerProposal(
-//     @Body('callId') callId: string,
-//     @Body('proposal') proposal: string,
-//   ) {
-//     // Aquí validaciones básicas tipo content-type y hash pueden ir en pipes o en DTO con class-validator
-//     try {
-//       const txHash = await this.proposalService.registerProposal(
-//         callId,
-//         proposal,
-//       );
-//       return { message: 'OK', txHash };
-//     } catch (error) {
-//       if (error.message === 'CALLID_NOT_FOUND') {
-//         throw new HttpException('CALLID_NOT_FOUND', HttpStatus.NOT_FOUND);
-//       }
-//       if (error.message === 'ALREADY_REGISTERED') {
-//         throw new HttpException('ALREADY_REGISTERED', HttpStatus.FORBIDDEN);
-//       }
-//       throw new HttpException(
-//         'INTERNAL_ERROR',
-//         HttpStatus.INTERNAL_SERVER_ERROR,
-//       );
-//     }
-//   }
-// }
-
-// // import { Controller } from '@nestjs/common';
-
-// // @Controller('proposal')
-// // export class ProposalController {}

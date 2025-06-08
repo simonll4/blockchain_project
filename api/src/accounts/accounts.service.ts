@@ -1,17 +1,17 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-
 import { ContractsService } from '../contracts/contracts.service';
+import { FactoryContract } from '../contracts/interfaces/cfp-factory.interface';
 
 @Injectable()
 export class AccountsService {
   constructor(private readonly contractsService: ContractsService) {}
 
   async getAllCreators(): Promise<string[]> {
-    const factory = this.contractsService.getFactory();
-    const count: bigint = await factory.creatorsCount();
+    const factory: FactoryContract = this.contractsService.getFactory();
+    const count: number = await factory.creatorsCount();
     const creators: string[] = [];
 
-    for (let i = 0; i < Number(count); i++) {
+    for (let i = 0; i < count; i++) {
       const creator: string = await factory.creators(i);
       creators.push(creator);
     }
@@ -20,27 +20,21 @@ export class AccountsService {
   }
 
   async getPendings(): Promise<string[]> {
-    const factory = this.contractsService.getFactory();
-    const signer = this.contractsService.getSigner();
-    const from = await signer.getAddress();
+    const factory: FactoryContract = this.contractsService.getFactory();
 
     try {
-      const count: bigint = await factory.pendingCount({ from });
+      const count: number = await factory.pendingCount();
       const pending: string[] = [];
 
-      for (let i = 0; i < Number(count); i++) {
-        const addr: string = await factory.getPending(i, { from });
+      for (let i = 0; i < count; i++) {
+        const addr: string = await factory.getPending(i);
         pending.push(addr);
       }
 
       return pending;
     } catch (error) {
+      console.error('Error in getPendings:', error);
       throw new UnauthorizedException('Unauthorized access or RPC error');
     }
   }
 }
-
-// import { Injectable } from '@nestjs/common';
-
-// @Injectable()
-// export class AccountsService {}

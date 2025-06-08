@@ -1,9 +1,19 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import morgan from 'morgan';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Global Validation Pipe
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
 
   // Middleware de morgan para logs de HTTP (formato 'dev')
   app.use(morgan('dev'));

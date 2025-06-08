@@ -7,6 +7,13 @@ import { AccountsModule } from './accounts/accounts.module';
 import { HealthModule } from './health/health.module';
 
 @Module({
-  imports: [ConfigModule, ContractsModule, ProposalsModule, CallsModule, AccountsModule, HealthModule],
+  imports: [
+    ConfigModule,
+    ContractsModule,
+    ProposalsModule,
+    CallsModule,
+    AccountsModule,
+    HealthModule,
+  ],
 })
 export class AppModule {}

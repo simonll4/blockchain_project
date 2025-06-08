@@ -10,11 +10,3 @@ import { ContractsModule } from '../contracts/contracts.module';
   exports: [CallsService],
 })
 export class CallsModule {}
-
-
-// import { Module } from '@nestjs/common';
-//import { CallsService } from './calls.service';
-//import { CallsController } from './calls.controller';
-
-// @Module({})
-// export class CallsModule {}
